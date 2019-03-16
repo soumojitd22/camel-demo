@@ -14,14 +14,13 @@ import java.io.File;
 import java.io.FileInputStream;
 
 @Component
-public class DocProcessor implements Processor {
-    private static final Logger LOGGER = LogManager.getLogger(DocProcessor.class);
-    private static final String KEY_WORD = "Dev";
+public class DocReader implements Processor {
+    private static final Logger LOGGER = LogManager.getLogger(DocReader.class);
 
     @Override
     public void process(Exchange exchange) throws Exception {
         File file = exchange.getIn().getBody(File.class);
-        LOGGER.info("Processing file :: {}", file);
+        LOGGER.info("Reading file :: {}", file);
         String fileContent = null;
         if (file.getName().endsWith(".docx")) {
             try (XWPFWordExtractor docx = new XWPFWordExtractor(new XWPFDocument(new FileInputStream(file)))) {
@@ -32,13 +31,8 @@ public class DocProcessor implements Processor {
                 fileContent = doc.getText();
             }
         }
-        LOGGER.info("Content of file :: {}", fileContent);
-        if (fileContent != null && fileContent.contains(KEY_WORD)) {
-            LOGGER.info("{} matched", KEY_WORD);
-            exchange.getIn().setBody(fileContent);
-            String destinationFileName = file.getName().split("\\.doc|\\.docx")[0] + ".txt";
-            exchange.getIn().setHeader("CamelFileName", destinationFileName);
-            LOGGER.info("Updated file name :: {}", destinationFileName);
-        }
+        LOGGER.debug("Content of file :: {}", fileContent);
+        exchange.getIn().setBody(fileContent);
+        LOGGER.info("File read");
     }
 }
